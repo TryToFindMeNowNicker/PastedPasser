@@ -377,40 +377,23 @@ screenGui.Enabled = true
 screenGui.Parent = playerGui
 
 local TextChatService = game:GetService("TextChatService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local chatType = "unknown"
 local chatChannel = nil
+
 if TextChatService.TextChannels then
-    chatType = "TextChatService"
-    for _, channel in pairs(TextChatService.TextChannels:GetChildren()) do
-        if channel:IsA("TextChannel") then
-            chatChannel = channel
-            break
-        end
-    end
+    chatChannel = TextChatService.TextChannels.RBXGeneral
     if chatChannel then
-        print("Detected TextChatService with channel: " .. chatChannel.Name)
+        print("Using TextChatService with channel: RBXGeneral")
     else
-        print("TextChatService detected but no channels found")
+        print("RBXGeneral channel not found in TextChatService.TextChannels")
     end
 else
     print("TextChatService.TextChannels not found")
-end
-
-if chatType == "unknown" and ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents") then
-    chatType = "LegacyChat"
-    print("Detected LegacyChat")
-end
-
-if chatType == "unknown" then
-    print("Could not detect chat system")
 end
 
 local function checkFilter(text)
     local success, result = pcall(function()
         return Chat:FilterStringAsync(text, player, player)
     end)
-    print("Filter check success: " .. tostring(success) .. ", Result: " .. tostring(result))
     return success, result
 end
 
@@ -506,7 +489,7 @@ CatBypasserToggle.BorderColor3 = Color3.new(0, 0, 0)
 CatBypasserToggle.BorderSizePixel = 0
 CatBypasserToggle.BackgroundTransparency = 0.875
 CatBypasserToggle.Position = UDim2.new(0.0461538471, 0, 0.498452008, 0)
-CatBypasserToggle.BackgroundColor3 = Color3.new(0, 1, 0) -- Start green (on)
+CatBypasserToggle.BackgroundColor3 = Color3.new(0, 1, 0)
 CatBypasserToggle.RichText = true
 CatBypasserToggle.TextColor3 = Color3.new(0, 0, 0)
 CatBypasserToggle.Text = "CatBypasser (Addon)"
@@ -559,8 +542,8 @@ ErrorLabel.TextSize = 20
 ErrorLabel.TextScaled = false
 ErrorLabel.Parent = PastedPasser
 
-if chatType == "unknown" then
-    ErrorLabel.Text = "Error: Could not detect chat system"
+if not chatChannel then
+    ErrorLabel.Text = "Error: RBXGeneral channel not found"
 end
 
 local UserInputService = game:GetService("UserInputService")
@@ -639,49 +622,27 @@ SendMessage.MouseButton1Click:Connect(function()
             message = bypassText(message, CatBypasserWordMap)
             print("After CatBypasser: " .. message)
         end
+        local success, filteredMessage = checkFilter(message)
+        if success and filteredMessage ~= "" then
+            message = filteredMessage
+            print("Filtered message: " .. message)
+        else
+        end
         print("Final message to send: " .. message)
-        if chatType == "TextChatService" then
-            if chatChannel then
-                print("Sending to TextChatService channel: " .. chatChannel.Name .. ", Message: " .. message)
-                local success, err = pcall(function()
-                    chatChannel:SendAsync(message)
-                end)
-                if success then
-                    print("Message sent successfully via TextChatService")
-                else
-                    print("Failed to send via TextChatService: " .. tostring(err))
-                    ErrorLabel.Text = "Failed to send message: " .. tostring(err)
-                end
+        if chatChannel then
+            print("Sending to TextChatService channel: RBXGeneral, Message: " .. message)
+            local success, err = pcall(function()
+                chatChannel:SendAsync(message)
+            end)
+            if success then
+                print("Message sent successfully via TextChatService")
             else
-                print("No TextChatService channel available to send message")
-                ErrorLabel.Text = "Error: No chat channel found"
-            end
-        elseif chatType == "LegacyChat" then
-            local chatEvents = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents")
-            if chatEvents then
-                local sayMessageRequest = chatEvents:FindFirstChild("SayMessageRequest")
-                if sayMessageRequest then
-                    print("Sending to LegacyChat: " .. message)
-                    local success, err = pcall(function()
-                        sayMessageRequest:FireServer(message, "All")
-                    end)
-                    if success then
-                        print("Message sent successfully via LegacyChat")
-                    else
-                        print("Failed to send via LegacyChat: " .. tostring(err))
-                        ErrorLabel.Text = "Failed to send message: " .. tostring(err)
-                    end
-                else
-                    print("SayMessageRequest not found in DefaultChatSystemChatEvents")
-                    ErrorLabel.Text = "Error: Legacy chat event not found"
-                end
-            else
-                print("DefaultChatSystemChatEvents not found in ReplicatedStorage")
-                ErrorLabel.Text = "Error: Legacy chat system not found"
+                print("Failed to send via TextChatService: " .. tostring(err))
+                ErrorLabel.Text = "Failed to send message: " .. tostring(err)
             end
         else
-            print("Unknown chat type, cannot send message")
-            ErrorLabel.Text = "Error: Unknown chat system"
+            print("No TextChatService channel available to send message")
+            ErrorLabel.Text = "Error: No chat channel found"
         end
         TextInput.Text = ""
     else
