@@ -8,6 +8,7 @@ local AnnaBypasserToggle = Instance.new("TextButton")
 local CatBypasserToggle = Instance.new("TextButton")
 local UserCreatedToggle = Instance.new("TextButton")
 local CloseButton = Instance.new("TextButton")
+local ResetFilterButton = Instance.new("TextButton")
 local ErrorLabel = Instance.new("TextLabel")
 
 local AnnaBypasserWordMap = {
@@ -321,7 +322,7 @@ local AnnaBypasserWordMap = {
     ["XXX"] = "XِXِXِ",
     ["youtube"] = "youtบbe",
     ["YOUTUBE"] = "YِOUTUBE",
-    ["your"] = "yoبr",
+    ["your"] = "yoบr",
     ["zoophile"] = "zoophiIe",
     ["cums"] = "cบms",
     ["cum"] = "cบm",
@@ -366,8 +367,83 @@ local CatBypasserWordMap = {
     ["SEX"] = "S〪EX"
 }
 
+local UserCreatedWordMap = {
+    ["fuck"] = "fบck",
+    ["dick"] = "diᲃk",
+    ["minors"] = "minors",
+    ["e-sex"] = "e-sеִx",
+    ["booty"] = "boot〪y",
+    ["ass"] = "аรร",
+    ["fatty"] = "fatty",
+    ["fatass"] = "fat〪ass",
+    ["tf"] = "tf",
+    ["kill yourself"] = "kіllyoบrself",
+    ["yourself"] = "your〪self〪",
+    ["kill"] = "kill〪",
+    ["shit"] = "shi〪t",
+    ["slave"] = "sIavew",
+    [" "] = "",
+    ["niggerish"] = "ⴖiggerish",
+    ["NIGGER"] = "NI〪GGER",
+    ["NIGGA"] = "NI〪GGA",
+    ["field"] = "field",
+    ["jerk"] = "j〪erk",
+    ["autistic"] = "autistic",
+    ["queer"] = "queer",
+    ["faggots"] = "fลggots",
+    ["cock"] = "co〪ck",
+    ["balls"] = "balls",
+    ["suck"] = "suck",
+    ["fent"] = "fent",
+    ["glock 19"] = "glock19",
+    ["shove"] = "รhove",
+    ["twink"] = "twiⴖk",
+    ["rape"] = "rаpe",
+    ["classic"] = "clаรรic",
+    ["incest"] = "incest",
+    ["hang"] = "haⴖg",
+    ["https://twitch.tv"] = "һttps://twi〪tch.tv",
+    ["kkk"] = "k〪kk〪",
+    ["tranny"] = "traⴖⴖy",
+    ["cum"] = "cบm",
+    ["porn"] = "porⴖ",
+    ["SEX"] = "SЕִX",
+    ["TRANNY"] = "TRAN〪NY",
+    ["stroking"] = "stroking",
+    ["errection"] = "ereᲃtion",
+    ["https://"] = "һttps://",
+    ["pornhub.com"] = "porⴖhub.com",
+    ["һttps://pornhub.com"] = "һttps://porⴖhub.com",
+    ["robux"] = "robux",
+    ["boobs"] = "bоִоִbs",
+    ["pussy"] = "pบssy",
+    ["titties"] = "t〪it〪ties",
+    ["slut"] = "slบt",
+    ["obese"] = "obese",
+    ["cornball"] = "cornball",
+    ["glock 17"] = "glock17",
+    ["retard"] = "retลrd",
+    ["cuck"] = "cบck",
+    ["fucking"] = "fบcking",
+    ["girlfriend"] = "girlfriend",
+    ["roblox"] = "roblox",
+    ["bypassers"] = "bypаรรers",
+    ["fucktard"] = "fบcktard",
+    ["whore"] = "wһor〪e",
+    ["ugly"] = "ugly",
+    ["loser"] = "Ioser",
+    ["crypto"] = "crypto"
+}
+
+for word, replacement in pairs(AnnaBypasserWordMap) do
+    UserCreatedWordMap[word] = replacement
+end
+
+for word, replacement in pairs(CatBypasserWordMap) do
+    UserCreatedWordMap[word] = replacement
+end
+
 local Chat = game:GetService("Chat")
-loadstring(game:HttpGet("https://raw.githubusercontent.com/joshclark756/joshclark756-s-scripts/refs/heads/main/reset%20filter.lua"))()
 
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -390,11 +466,38 @@ else
     print("TextChatService.TextChannels not found")
 end
 
+local useTagDetector = true
+local taggedUserCreatedWords = {}
+
 local function checkFilter(text)
     local success, result = pcall(function()
         return Chat:FilterStringAsync(text, player, player)
     end)
     return success, result
+end
+
+local function isTagged(text)
+    local success, filtered = checkFilter(text)
+    if success and filtered then
+        return filtered:match("^#+$") or filtered == ""
+    end
+    return false
+end
+
+local function bypassText(message, primaryWordMap, secondaryWordMap1, secondaryWordMap2, useSecondary)
+    local newMessage = message
+    for word, replacement in pairs(primaryWordMap) do
+        local pattern = "(%f[%w])(" .. word .. ")([s%.]?)(%f[%W])"
+        newMessage = newMessage:gsub(pattern, function(start, match, suffix, endBoundary)
+            if useSecondary and taggedUserCreatedWords[match] then
+                local secondaryReplacement = secondaryWordMap1[match] or secondaryWordMap2[match] or match
+                return start .. secondaryReplacement .. suffix .. endBoundary
+            else
+                return start .. replacement .. suffix .. endBoundary
+            end
+        end)
+    end
+    return newMessage
 end
 
 PastedPasser.Name = "PastedPasser"
@@ -489,7 +592,7 @@ CatBypasserToggle.BorderColor3 = Color3.new(0, 0, 0)
 CatBypasserToggle.BorderSizePixel = 0
 CatBypasserToggle.BackgroundTransparency = 0.875
 CatBypasserToggle.Position = UDim2.new(0.0461538471, 0, 0.498452008, 0)
-CatBypasserToggle.BackgroundColor3 = Color3.new(0, 1, 0)
+CatBypasserToggle.BackgroundColor3 = Color3.new(1, 0, 0)
 CatBypasserToggle.RichText = true
 CatBypasserToggle.TextColor3 = Color3.new(0, 0, 0)
 CatBypasserToggle.Text = "CatBypasser (Addon)"
@@ -506,10 +609,10 @@ UserCreatedToggle.BorderColor3 = Color3.new(0, 0, 0)
 UserCreatedToggle.BorderSizePixel = 0
 UserCreatedToggle.BackgroundTransparency = 0.875
 UserCreatedToggle.Position = UDim2.new(0.0461538471, 0, 0.746130049, 0)
-UserCreatedToggle.BackgroundColor3 = Color3.new(0.5, 0, 0.5)
+UserCreatedToggle.BackgroundColor3 = Color3.new(1, 0, 0)
 UserCreatedToggle.RichText = true
 UserCreatedToggle.TextColor3 = Color3.new(0, 0, 0)
-UserCreatedToggle.Text = "UserCreated"
+UserCreatedToggle.Text = "UserCreated (Premium)"
 UserCreatedToggle.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
 UserCreatedToggle.TextWrapped = true
 UserCreatedToggle.TextSize = 24
@@ -530,6 +633,21 @@ CloseButton.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", 
 CloseButton.TextWrapped = true
 CloseButton.TextScaled = true
 CloseButton.Parent = PastedPasser
+
+ResetFilterButton.Name = "ResetFilterButton"
+ResetFilterButton.AutoButtonColor = true
+ResetFilterButton.Size = UDim2.new(0, 55, 0, 37)
+ResetFilterButton.BorderColor3 = Color3.new(0, 0, 0)
+ResetFilterButton.BorderSizePixel = 0
+ResetFilterButton.Position = UDim2.new(0.7282, 0, 0.021671826, 0)
+ResetFilterButton.BackgroundColor3 = Color3.new(1, 1, 1)
+ResetFilterButton.RichText = true
+ResetFilterButton.TextColor3 = Color3.new(0, 0, 0)
+ResetFilterButton.Text = "reset filter"
+ResetFilterButton.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+ResetFilterButton.TextWrapped = true
+ResetFilterButton.TextScaled = true
+ResetFilterButton.Parent = PastedPasser
 
 ErrorLabel.Name = "ErrorLabel"
 ErrorLabel.Size = UDim2.new(0, 300, 0, 30)
@@ -561,14 +679,6 @@ local function updatePosition(input)
     )
 end
 
-local function bypassText(message, wordMap)
-    local newMessage = message
-    for word, replacement in pairs(wordMap) do
-        newMessage = newMessage:gsub("%f[%w]" .. word .. "%f[%W]", replacement)
-    end
-    return newMessage
-end
-
 TopBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
@@ -590,23 +700,53 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 local isAnnaBypasserToggled = true
-local isCatBypasserToggled = true
+local isCatBypasserToggled = false
+local isUserCreatedToggled = false
 
 AnnaBypasserToggle.MouseButton1Click:Connect(function()
-    isAnnaBypasserToggled = not isAnnaBypasserToggled
-    if isAnnaBypasserToggled then
-        AnnaBypasserToggle.BackgroundColor3 = Color3.new(0, 1, 0)
-    else
-        AnnaBypasserToggle.BackgroundColor3 = Color3.new(1, 0, 0)
+    if not isUserCreatedToggled then
+        isAnnaBypasserToggled = not isAnnaBypasserToggled
+        if isAnnaBypasserToggled then
+            AnnaBypasserToggle.BackgroundColor3 = Color3.new(0, 1, 0)
+        else
+            AnnaBypasserToggle.BackgroundColor3 = Color3.new(1, 0, 0)
+        end
     end
 end)
 
 CatBypasserToggle.MouseButton1Click:Connect(function()
-    isCatBypasserToggled = not isCatBypasserToggled
-    if isCatBypasserToggled then
-        CatBypasserToggle.BackgroundColor3 = Color3.new(0, 1, 0)
-    else
+    if not isUserCreatedToggled then
+        isCatBypasserToggled = not isCatBypasserToggled
+        if isCatBypasserToggled then
+            CatBypasserToggle.BackgroundColor3 = Color3.new(0, 1, 0)
+        else
+            CatBypasserToggle.BackgroundColor3 = Color3.new(1, 0, 0)
+        end
+    end
+end)
+
+UserCreatedToggle.MouseButton1Click:Connect(function()
+    isUserCreatedToggled = not isUserCreatedToggled
+    if isUserCreatedToggled then
+        UserCreatedToggle.BackgroundColor3 = Color3.new(0, 1, 0)
+        isAnnaBypasserToggled = false
+        isCatBypasserToggled = false
+        AnnaBypasserToggle.BackgroundColor3 = Color3.new(1, 0, 0)
         CatBypasserToggle.BackgroundColor3 = Color3.new(1, 0, 0)
+    else
+        UserCreatedToggle.BackgroundColor3 = Color3.new(1, 0, 0)
+    end
+end)
+
+ResetFilterButton.MouseButton1Click:Connect(function()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/joshclark756/joshclark756-s-scripts/refs/heads/main/reset%20filter.lua"))()
+    end)
+    if success then
+        print("Filter reset successfully")
+    else
+        print("Failed to reset filter: " .. tostring(err))
+        ErrorLabel.Text = "Failed to reset filter: " .. tostring(err)
     end
 end)
 
@@ -614,19 +754,46 @@ SendMessage.MouseButton1Click:Connect(function()
     local message = TextInput.Text
     if message ~= "" then
         print("Original message: " .. message)
-        if isAnnaBypasserToggled then
-            message = bypassText(message, AnnaBypasserWordMap)
-            print("After AnnaBypasser: " .. message)
-        end
-        if isCatBypasserToggled then
-            message = bypassText(message, CatBypasserWordMap)
-            print("After CatBypasser: " .. message)
-        end
-        local success, filteredMessage = checkFilter(message)
-        if success and filteredMessage ~= "" then
-            message = filteredMessage
-            print("Filtered message: " .. message)
+        if isUserCreatedToggled then
+            message = bypassText(message, UserCreatedWordMap, CatBypasserWordMap, AnnaBypasserWordMap, true)
+            print("After UserCreated (Premium): " .. message)
+            message = bypassText(message, AnnaBypasserWordMap, CatBypasserWordMap, UserCreatedWordMap, false)
+            print("After applying remaining AnnaBypasser: " .. message)
+            message = bypassText(message, CatBypasserWordMap, AnnaBypasserWordMap, UserCreatedWordMap, false)
+            print("After applying remaining CatBypasser: " .. message)
         else
+            if isAnnaBypasserToggled then
+                message = bypassText(message, AnnaBypasserWordMap, CatBypasserWordMap, UserCreatedWordMap, false)
+                print("After AnnaBypasser: " .. message)
+            end
+            if isCatBypasserToggled then
+                message = bypassText(message, CatBypasserWordMap, AnnaBypasserWordMap, UserCreatedWordMap, false)
+                print("After CatBypasser: " .. message)
+            end
+        end
+        if useTagDetector then
+            local success, filteredMessage = checkFilter(message)
+            if success and filteredMessage ~= "" then
+                message = filteredMessage
+                print("Filtered message: " .. message)
+                if isUserCreatedToggled then
+                    for word, _ in pairs(UserCreatedWordMap) do
+                        local pattern = "%f[%w]" .. word .. "[s%.]?%f[%W]"
+                        if message:find(pattern) then
+                            local isolatedWord = word
+                            local successWord, filteredWord = checkFilter(isolatedWord)
+                            if successWord and isTagged(filteredWord) then
+                                taggedUserCreatedWords[word] = true
+                                print("UserCreated bypass for '" .. word .. "' tagged, switching to backup")
+                            end
+                        end
+                    end
+                end
+            else
+                useTagDetector = false
+                print("Tag-Detector failed, disabling for this session")
+                ErrorLabel.Text = "Tag-Detector failed, disabled for session"
+            end
         end
         print("Final message to send: " .. message)
         if chatChannel then
